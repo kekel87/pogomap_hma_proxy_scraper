@@ -6,19 +6,17 @@ import requests
 import re
 import sys
 import logging
-import requests
-import sys
+import configargparse
 
 from queue import Queue
 from threading import Thread
 
+# ======================================================
 logging.basicConfig(
     format='%(asctime)s %(levelname)s: %(message)s',
     datefmt='%H:%M:%S'
 )
-
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 # ======================================================
 # Scrap Hyde my ass multi-pages
@@ -157,22 +155,48 @@ f.write('hi there\n') # python will convert \n to os.linesep
 f.close() # you can omit in most cases as the destructor will call it
 """
 if __name__ == "__main__":
-    error = 'Input the number of pages to scrape. Ex:\npython hma-scraper.py 30'
-    log.info('Starting')
+    p = configargparse.ArgParser()
+    p.add_argument('-cf', '--config-file', is_config_file=True, help='config file path')
+    p.add_argument('-p', '--pages', help='Number of pages to scrape',type=int, default=1)
+    p.add_argument('-pt', '--proxy-timeout', help='Timeout settings for proxy checker in seconds', type=int, default=5)
+    p.add_argument('-f', '--file', help='Output file, default print in console')
+    p.add_argument(
+        '-fl',
+        '--flat',
+        help='Flat format like http://ip;port\n ( default :[http://ip;port, ...])',
+        action='store_true',
+        default=False
+    )
+    p.add_argument('-v', help='verbose', action='store_true', default=False)
+    p.add_argument('-d', help='debug', action='store_true', default=False)
+
+    args = p.parse_args()
+    
+    if args.v:
+        log.setLevel(logging.INFO)
+
+    if args.d:
+        log.setLevel(logging.DEBUG)
+    
+    
     
     try:
-        pages = 5
-        if len(sys.argv) == 2:
-            if sys.argv[1].isdigit() == True:
-                pages = int(sys.argv[1])
+        #proxies = scrapes_hma(args.pages)
+        #working_proxies = check_proxies(proxies, args.proxy_timeout)
 
-        timeout = 10
-        if len(sys.argv) == 3:
-            if sys.argv[2].isdigit() == True:
-                timeout = int(sys.argv[2])
+        working_proxies = ['https://178.22.148.122:3129', 'https://178.22.148.122:3129']
 
-        proxies = scrapes_hma(pages)
-        working_proxies = check_proxies(proxies, timeout)
-        print(working_proxies)
-    except:
-        print(error)
+        if args.file is None:
+            print(working_proxies)
+        else:
+            f = open(args.file, 'w+')
+            if args.flat:
+                for wp in working_proxies:
+                    f.write(wp + '\n')
+            else :
+                f.write('[' + ', '.join(working_proxies) + ']')
+                
+            f.close()
+
+    except Exception as e:
+        log.error('%s', e)
