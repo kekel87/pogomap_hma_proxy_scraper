@@ -181,10 +181,8 @@ if __name__ == "__main__":
     
     
     try:
-        #proxies = scrapes_hma(args.pages)
-        #working_proxies = check_proxies(proxies, args.proxy_timeout)
-
-        working_proxies = ['https://178.22.148.122:3129', 'https://178.22.148.122:3129']
+        proxies = scrapes_hma(args.pages)
+        working_proxies = check_proxies(proxies, args.proxy_timeout)
 
         if args.file is None:
             print(working_proxies)
